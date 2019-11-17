@@ -1,3 +1,4 @@
 Table Tennis Simulator
 
-Sowtfare: OpenGL
+Software: OpenGL
+
