@@ -10,9 +10,12 @@
 
 			var renderer, scene, camera;
 			
-			var table; //objects
+			var table, paddleObj, ball; //objects
 			var assetsToLoad = 1;
+			var input = {x:0, y: 0};
+
 			var textureLoader = new THREE.TextureLoader();
+			var clock = new THREE.Clock();
 			
 			function toRad(degree) {
 				return Math.PI * 2 * degree / 360;
@@ -39,15 +42,10 @@
 				camera.up = new THREE.Vector3(0, 1, 0);
 				camera.position.set(0, 0, 18);
 
-				var directionalLight = new THREE.DirectionalLight();
-				directionalLight.position.set(1, 1, 1);
-				scene.add(directionalLight);
-
-				var light = new THREE.PointLight(0xffffff);
-				light.position.set(0,2.5,2);
-				scene.add(light);
-
+				addLighting();
 				addEvironment();
+				createBall();
+				userInput();
 
 				// Load the table
 				var mtlLoader = new THREE.MTLLoader();
@@ -68,12 +66,21 @@
 
 			function loadPaddle(paddle) {
 				console.log(paddle);
+				paddleObj = new THREE.Group();
+				paddleObj.name = "PaddleObj";
+				
+				paddle.name = 'Paddle';
+
+				var getPaddle = paddle.getObjectByName("15583_TableTennisPaddle_ShakehandStyle");
+				paddle.remove(getPaddle);
+				paddle.add(getPaddle);
+
 				paddle.position.set(0, -3, 5);
-				paddle.name = "Paddle";
 				paddle.scale.set(0.1, 0.1, 0.1);
 				paddle.rotation.set(toRad(-90), 0, 0);
 
-				scene.add(paddle);
+				paddleObj.add(paddle);
+				scene.add(paddleObj);
 				
 				if (!(--assetsToLoad)) {
 					loaded();
@@ -93,6 +100,36 @@
 					loaded();
 				}
 			}
+
+			function createBall() {
+				var ballRadius = 0.2;
+				var ballGeometry = new THREE.SphereGeometry(ballRadius,16,16);
+				var ballMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, ambient: 0xcccccc} );
+				ball = new THREE.Mesh( ballGeometry, ballMaterial );
+				ball.position.set(0,0,0);
+				scene.add(ball);
+			}
+
+			function addLighting() {
+				var directionalLight = new THREE.DirectionalLight();
+				directionalLight.position.set(1, 1, 1);
+				scene.add(directionalLight);
+
+				var light = new THREE.PointLight(0xffffff);
+				light.position.set(0,2.5,2);
+				scene.add(light);
+			}
+
+			function userInput() {
+				function inputHandler(ev) {
+					var x = ev.targetTouches ? ev.targetTouches[0].clientX : ev.clientX;
+           			var y = ev.targetTouches ? ev.targetTouches[0].clientY : ev.clientY;
+					input.x = x;
+					input.y = y;
+				}
+
+				this.renderer.domElement.addEventListener("mousemove", inputHandler);
+			}
 			
 			function onTextureLoaded(texture) {
 				texture.wrapS = THREE.RepeatWrapping;
@@ -108,8 +145,29 @@
 			function loaded() {
 				draw();
 			}
+
+			function updatePaddlePosition() {
+				var paddle = scene.getObjectByName( "PaddleObj" );
+				if (paddle) {
+					var x = (input.x - window.innerWidth/2) / 50;
+					var y = 0;
+
+					if (input.x < window.innerWidth/2) {
+						x = -1 * (window.innerWidth/2 - input.x) / 50;
+					}
+
+					paddleObj.position.set(x, y, 0);
+
+					var center = new THREE.Vector3().copy(paddleObj.position).add(new THREE.Vector3(0, 3, 0));
+					camera.position.set(0, 1, 18)
+					camera.lookAt(center);
+				}
+			}
 			
 			function draw() {
+				var dt = clock.getDelta();
+				var time = clock.getElapsedTime();
+				updatePaddlePosition();
 				requestAnimationFrame(draw);
 				renderer.render(scene, camera);
 			}
