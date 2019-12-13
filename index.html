@@ -1,233 +1,309 @@
 <!DOCTYPE>
 <html>
-	<head>
-		<title>Table Tennis Game</title>
-		<meta charset="UTF-8">
-		<script type="text/javascript" src="static/three.r96.js"></script>
-		<script type="text/javascript" src="static/MTLLoader.js"></script>
-		<script type="text/javascript" src="static/OBJLoader.js"></script>
-		<script type="text/javascript">
 
-			var renderer, scene, camera;
-			
-			var table, paddleObj, ball; //objects
-			var assetsToLoad = 1;
-			var input = {x:0, y: 0};
+<head>
+    <title>Table Tennis Game</title>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="static/three.r96.js"></script>
+    <script type="text/javascript" src="static/MTLLoader.js"></script>
+    <script type="text/javascript" src="static/OBJLoader.js"></script>
+    <script type="text/javascript">
+        var renderer, scene, camera;
 
-			var textureLoader = new THREE.TextureLoader();
-			var clock = new THREE.Clock();
-			
-			function toRad(degree) {
-				return Math.PI * 2 * degree / 360;
-			}
+        var table, paddleObj, ball; //objects
+        var assetsToLoad = 1;
+        var input = {
+            x: 0,
+            y: 0
+        };
 
-			function millis() {
-				return (new Date()).getTime();
-			}
-		
-			function onLoad() { 
-				var canvasContainer = document.getElementById('canvasContainer'); 
-				var width = window.innerWidth; 
-				var height = window.innerHeight;
-				
-				renderer = new THREE.WebGLRenderer(); 
-				renderer.setSize(width, height);
-				renderer.gammaInput = true;
-				renderer.gammaOutput = true;
-				canvasContainer.appendChild(renderer.domElement);
-				
-				scene = new THREE.Scene();
-				
-				camera = new THREE.PerspectiveCamera(80, width / height, 1, 1000);
-				camera.up = new THREE.Vector3(0, 1, 0);
-				camera.position.set(0, 0, 18);
+        var textureLoader = new THREE.TextureLoader();
+        var clock = new THREE.Clock();
 
-				addLighting();
-				addEvironment();
-				createBall();
-				userInput();
+        function toRad(degree) {
+            return Math.PI * 2 * degree / 360;
+        }
 
-				// Load the table
-				var mtlLoader = new THREE.MTLLoader();
-				mtlLoader.load('static/10520_pingpongtable_L2.mtl', function(materials) {
-					var objLoader = new THREE.OBJLoader();
-					objLoader.setMaterials(materials);
-					objLoader.load('static/10520_pingpongtable_L2.obj', loadTable);
-				});
+        function millis() {
+            return (new Date()).getTime();
+        }
 
-				// Load a paddle
-				var mtlLoader = new THREE.MTLLoader();
-				mtlLoader.load('static/paddle.mtl', function(materials) {
-					var objLoader = new THREE.OBJLoader();
-					objLoader.setMaterials(materials);
-					objLoader.load('static/paddle.obj', loadPaddle);
-				});
-			}
+        function onLoad() {
+            var canvasContainer = document.getElementById('canvasContainer');
+            var width = window.innerWidth;
+            var height = window.innerHeight;
 
-			function loadPaddle(paddle) {
-				console.log(paddle);
-				paddleObj = new THREE.Group();
-				paddleObj.name = "PaddleObj";
-				
-				paddle.name = 'Paddle';
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(width, height);
+            renderer.gammaInput = true;
+            renderer.gammaOutput = true;
+            canvasContainer.appendChild(renderer.domElement);
 
-				var getPaddle = paddle.getObjectByName("15583_TableTennisPaddle_ShakehandStyle");
-				paddle.remove(getPaddle);
-				paddle.add(getPaddle);
+            scene = new THREE.Scene();
 
-				paddle.position.set(0, -3, 5);
-				paddle.scale.set(0.1, 0.1, 0.1);
-				paddle.rotation.set(toRad(-90), 0, 0);
+            camera = new THREE.PerspectiveCamera(80, width / height, 1, 1000);
+            camera.up = new THREE.Vector3(0, 1, 0);
+            camera.position.set(0, 0, 18);
 
-				paddleObj.add(paddle);
-				scene.add(paddleObj);
-				
-				if (!(--assetsToLoad)) {
-					loaded();
-				}
-			}
+            addLighting();
+            addEvironment();
+            createBall();
+            userInput();
 
-			function loadTable(table) {
+            // Load the table
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.load('static/10520_pingpongtable_L2.mtl', function(materials) {
+                var objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.load('static/10520_pingpongtable_L2.obj', loadTable);
+            });
 
-				table.position.set(0, -10, -3);
-				table.name = "Table";
-				table.scale.set(0.08, 0.06, 0.06);
-				table.rotation.set(toRad(-90), 0, 0);
+            // Load a paddle
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.load('static/paddle.mtl', function(materials) {
+                var objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.load('static/paddle.obj', loadPaddle);
+            });
+        }
 
-				scene.add(table);
-				
-				if (!(--assetsToLoad)) {
-					loaded();
-				}
-			}
+        function loadPaddle(paddle) {
+            console.log(paddle);
+            paddleObj = new THREE.Group();
+            paddleObj.name = "PaddleObj";
 
-			function createBall() {
-				var ballRadius = 0.2;
-				var ballGeometry = new THREE.SphereGeometry(ballRadius,16,16);
-				var ballMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, ambient: 0xcccccc} );
-				ball = new THREE.Mesh( ballGeometry, ballMaterial );
-				ball.position.set(0,0,0);
-				scene.add(ball);
-			}
+            paddle.name = 'Paddle';
 
-			function addLighting() {
-				var directionalLight = new THREE.DirectionalLight();
-				directionalLight.position.set(1, 1, 1);
-				scene.add(directionalLight);
+            var getPaddle = paddle.getObjectByName("15583_TableTennisPaddle_ShakehandStyle");
+            paddle.remove(getPaddle);
+            paddle.add(getPaddle);
 
-				var light = new THREE.PointLight(0xffffff);
-				light.position.set(0,2.5,2);
-				scene.add(light);
-			}
+            paddle.position.set(0, -3, 5);
+            paddle.scale.set(0.1, 0.1, 0.1);
+            paddle.rotation.set(toRad(-90), 0, 0);
 
-			function userInput() {
-				function inputHandler(ev) {
-					var x = ev.targetTouches ? ev.targetTouches[0].clientX : ev.clientX;
-           			var y = ev.targetTouches ? ev.targetTouches[0].clientY : ev.clientY;
-					input.x = x;
-					input.y = y;
-				}
+            paddleObj.add(paddle);
+            scene.add(paddleObj);
 
-				this.renderer.domElement.addEventListener("mousemove", inputHandler);
-			}
-			
-			function onTextureLoaded(texture) {
-				texture.wrapS = THREE.RepeatWrapping;
-				texture.wrapT = THREE.RepeatWrapping;
-				texture.repeat.set(2, 10);
-				texture.needsUpdate = true;
-				
-				if (!(--assetsToLoad)) {
-					loaded();
-				}
-			}
-			
-			function loaded() {
-				draw();
-			}
+            if (!(--assetsToLoad)) {
+                loaded();
+            }
+        }
 
-			function updatePaddlePosition() {
-				var paddle = scene.getObjectByName( "PaddleObj" );
-				if (paddle) {
-					var x = (input.x - window.innerWidth/2) / 50;
-					var y = 0;
+        function loadTable(table) {
 
-					if (input.x < window.innerWidth/2) {
-						x = -1 * (window.innerWidth/2 - input.x) / 50;
-					}
+            table.position.set(0, -10, -3);
+            table.name = "Table";
+            table.scale.set(0.08, 0.06, 0.06);
+            table.rotation.set(toRad(-90), 0, 0);
 
-					paddleObj.position.set(x, y, 0);
+            scene.add(table);
 
-					var center = new THREE.Vector3().copy(paddleObj.position).add(new THREE.Vector3(0, 3, 0));
-					camera.position.set(0, 1, 18)
-					camera.lookAt(center);
-				}
-			}
-			
-			function draw() {
-				var dt = clock.getDelta();
-				var time = clock.getElapsedTime();
-				updatePaddlePosition();
-				requestAnimationFrame(draw);
-				renderer.render(scene, camera);
-			}
-			
+            if (!(--assetsToLoad)) {
+                loaded();
+            }
+        }
 
-			function addEvironment() {
-				var hangar = new THREE.Object3D();
-				var halfPi = Math.PI / 2;
-				
-				var floor = createWall(0x222222, 100, 200);
-				floor.position.set(0, -10, 40);
-				floor.rotation.set(-halfPi, 0, 0);
+        function createBall() {
+            var ballRadius = 0.2;
+            var ballGeometry = new THREE.SphereGeometry(ballRadius, 16, 16);
+            var ballMaterial = new THREE.MeshLambertMaterial({
+                color: 0xffffff,
+                ambient: 0xcccccc
+            });
+            ball = new THREE.Mesh(ballGeometry, ballMaterial);
+            ball.position.set(0, -3, 0);
+            scene.add(ball);
+        }
 
-				var backWall = createWall(0x222222, 70, 100);
-				backWall.position.set(0, 0, -20);
-				backWall.rotation.set(0, 0, -halfPi);
+        function addLighting() {
+            var directionalLight = new THREE.DirectionalLight();
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
 
-				var leftWall = createWall(0x222222, 70, 100);
-				leftWall.position.set(-30, 0, -20);
-				leftWall.rotation.set(0, halfPi, -halfPi);
+            var light = new THREE.PointLight(0xffffff);
+            light.position.set(0, 2.5, 2);
+            scene.add(light);
+        }
 
-				var rightWall = createWall(0x222222, 70, 100);
-				rightWall.position.set(30, 0, -20);
-				rightWall.rotation.set(0, -halfPi, -halfPi);
-				
-				floor.material = new THREE.MeshLambertMaterial({
-					map: textureLoader.load('static/white_wall.jpg', onTextureLoaded)
-				});
+        function userInput() {
+            function inputHandler(ev) {
+                var x = ev.targetTouches ? ev.targetTouches[0].clientX : ev.clientX;
+                var y = ev.targetTouches ? ev.targetTouches[0].clientY : ev.clientY;
+                input.x = x;
+                input.y = y;
+            }
 
-				backWall.material = new THREE.MeshLambertMaterial({
-					map: textureLoader.load('static/dark_wall.jpg', onTextureLoaded)
-				});
+            this.renderer.domElement.addEventListener("mousemove", inputHandler);
+            this.renderer.domElement.addEventListener("mousedown", serveHandler);
+        }
 
-				leftWall.material = new THREE.MeshLambertMaterial({
-					map: textureLoader.load('static/dark_wall.jpg', onTextureLoaded)
-				});
+        function onTextureLoaded(texture) {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(2, 10);
+            texture.needsUpdate = true;
 
-				rightWall.material = new THREE.MeshLambertMaterial({
-					map: textureLoader.load('static/dark_wall.jpg', onTextureLoaded)
-				});
+            if (!(--assetsToLoad)) {
+                loaded();
+            }
+        }
 
-				hangar.add(floor);
-				hangar.add(backWall);
-				hangar.add(leftWall);
-				hangar.add(rightWall);
-				
-				scene.add(hangar);
-			}
-			
-			function createWall(colorCode, width, height) {
-				var geometry = new THREE.PlaneGeometry(width, height, width, height);
-				var material = new THREE.MeshBasicMaterial({color: colorCode});
-				var wall = new THREE.Mesh(geometry, material);
-				
-				return wall;
-			}
-			
-		</script>
-	</head>
-	<body onload="onLoad()">
-		<div id="canvasContainer"></div>
-	</body>
+        function loaded() {
+            draw();
+        }
+
+        function addEvironment() {
+            var hangar = new THREE.Object3D();
+            var halfPi = Math.PI / 2;
+
+            var floor = createWall(0x222222, 100, 200);
+            floor.position.set(0, -10, 40);
+            floor.rotation.set(-halfPi, 0, 0);
+
+            var backWall = createWall(0x222222, 70, 100);
+            backWall.position.set(0, 0, -20);
+            backWall.rotation.set(0, 0, -halfPi);
+
+            var leftWall = createWall(0x222222, 70, 100);
+            leftWall.position.set(-30, 0, -20);
+            leftWall.rotation.set(0, halfPi, -halfPi);
+
+            var rightWall = createWall(0x222222, 70, 100);
+            rightWall.position.set(30, 0, -20);
+            rightWall.rotation.set(0, -halfPi, -halfPi);
+
+            floor.material = new THREE.MeshLambertMaterial({
+                map: textureLoader.load('static/white_wall.jpg', onTextureLoaded)
+            });
+
+            backWall.material = new THREE.MeshLambertMaterial({
+                map: textureLoader.load('static/dark_wall.jpg', onTextureLoaded)
+            });
+
+            leftWall.material = new THREE.MeshLambertMaterial({
+                map: textureLoader.load('static/dark_wall.jpg', onTextureLoaded)
+            });
+
+            rightWall.material = new THREE.MeshLambertMaterial({
+                map: textureLoader.load('static/dark_wall.jpg', onTextureLoaded)
+            });
+
+            hangar.add(floor);
+            hangar.add(backWall);
+            hangar.add(leftWall);
+            hangar.add(rightWall);
+
+            scene.add(hangar);
+        }
+
+        function createWall(colorCode, width, height) {
+            var geometry = new THREE.PlaneGeometry(width, height, width, height);
+            var material = new THREE.MeshBasicMaterial({
+                color: colorCode
+            });
+            var wall = new THREE.Mesh(geometry, material);
+
+            return wall;
+        }
+
+        function draw() {
+            var dt = clock.getDelta();
+            var time = clock.getElapsedTime();
+            updatePaddlePosition();
+            updateBallPosition();
+            requestAnimationFrame(draw);
+            renderer.render(scene, camera);
+        }
+
+        /**Player controlling ball*/
+        function updatePaddlePosition() {
+            var paddle = scene.getObjectByName("PaddleObj");
+            if (paddle) {
+                var x = (input.x - window.innerWidth / 2) / 50;
+                var y = 0;
+
+                if (input.x < window.innerWidth / 2) {
+                    x = -1 * (window.innerWidth / 2 - input.x) / 50;
+                }
+
+                if (Math.abs(x) > 5) return;
+
+                paddleObj.position.set(x, y, 0);
+
+                var center = new THREE.Vector3().copy(paddleObj.position).add(new THREE.Vector3(0, 3, 0));
+                camera.position.set(0, 1, 18);
+                camera.lookAt(center);
+            }
+        }
+
+        /**Ball physics*/
+        var facingVector = new THREE.Vector3();
+        var ballLastMoveTime = 0;
+        var gravityConstant = 0;
+        var ballLaunched = false;
+        var ballsDirection = 0;
+
+        function updateBallPosition() {
+            if (millis() - ballLastMoveTime < 100 || !ballLaunched) return;
+            ballLastMoveTime = millis();
+            var speed = 0.5;
+            var vector = facingVector.clone().multiplyScalar(speed, speed, speed);
+
+            //Ball collision
+            var temp = ball.position.y + gravityConstant;
+
+            //Hits table
+            if (temp < -4.5) {
+                gravityConstant = 0.5;
+            }
+
+            //Hits higest point
+            if (temp > -2) {
+                gravityConstant = -0.5;
+            }
+
+            //Change ball position
+            ball.position.x += vector.x;
+            ball.position.y += gravityConstant;
+            ball.position.z += vector.z;
+
+            //Ball coming back
+            var tempBallPos = new THREE.Vector3().copy(ball.position).add(vector);
+            if (tempBallPos.distanceTo(new THREE.Vector3()) > 10.0) {
+                if (ballsDirection == 1) {
+                    ballLaunched = false;
+                } else {
+                    var targetPos = new THREE.Vector3(randomInt(-5, 5), 0, 0);
+                    facingVector.subVectors(targetPos, ball.position).normalize();
+                    ballsDirection = 1;
+                }
+            }
+        }
+
+        function serveHandler(ev) {
+            //Ball already launched or lmb wasn't pressed
+            if (ballLaunched || ev.which != 1) return;
+            //Camera and paddle vector
+            var pos = new THREE.Vector3().copy(paddleObj.position).add(new THREE.Vector3(0, -2, 4));
+            ball.position.copy(pos);
+            facingVector.subVectors(paddleObj.position, camera.position).normalize();
+            ballsDirection = 0;
+            gravityConstant = -0.5;
+            ballLastMoveTime = millis();
+            ballLaunched = true;
+        }
+
+        function randomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+    </script>
+</head>
+
+<body onload="onLoad()">
+    <div id="canvasContainer"></div>
+</body>
+
 </html>
